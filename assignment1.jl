@@ -13,7 +13,7 @@ end
 end
 
 @inline function *(x::Int8, y::Int8)
-    return ifelse(x==0 || y==0, x, ifelse(x==1, y, ifelse(y==1, x, ifelse(x!=y, convert(Int8, 1), ifelse(x == 2, convert(Int8, 3), convert(Int8, 2))))))
+    return ifelse(x==0 || y==0, convert(Int8, 0), ifelse(x==1, y, ifelse(y==1, x, ifelse(x!=y, convert(Int8, 1), ifelse(x == 2, convert(Int8, 3), convert(Int8, 2))))))
 end
 
 @inline function inv(x::Int8)
