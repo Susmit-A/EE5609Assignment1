@@ -1,19 +1,22 @@
 const inv_map::Vector{Int8} = [1, 3, 2]
 
-@inline function +(x::Int8, y::Int8)
-    return x ⊻ y
-end
-
 @inline function -(x::Int8)
     return x
 end
 
+@inline function +(x::Vector{Int8}, y::Vector{Int8})
+    @inbounds @simd for i in 1:length(y)
+        x[i] ⊻= y[i]
+    end
+    return x
+end
+
 @inline function -(x::Int8, y::Int8)
-    return x + y
+    return x ⊻ y
 end
 
 @inline function *(x::Int8, y::Int8)
-    return ifelse(x==0 || y==0, convert(Int8, 0), ifelse(x==1, y, ifelse(y==1, x, ifelse(x!=y, convert(Int8, 1), ifelse(x == 2, convert(Int8, 3), convert(Int8, 2))))))
+    return ifelse(x==0 || y==0 , convert(Int8, 0), ifelse(x==1, y, ifelse(y==1, x, ifelse(x!=y, convert(Int8, 1), ifelse(x == 2, convert(Int8, 3), convert(Int8, 2))))))
 end
 
 @inline function inv(x::Int8)
@@ -26,7 +29,7 @@ end
 
 @inline function -(x::Vector{Int8}, y::Vector{Int8})
     @inbounds @simd for i in 1:length(x)
-        x[i] -= y[i]
+        x[i] ⊻= y[i]
     end
     return x
 end
@@ -46,7 +49,7 @@ end
 end
 
 
-function rankconsistency(A, b)
+function rankconsistencyTeamID20(A, b)
     A = convert(Matrix{Int8}, A)
     b = convert(Vector{Int8}, b)
     A = hcat(A, b)
@@ -54,7 +57,7 @@ function rankconsistency(A, b)
     rank = 0
     @inbounds begin
         for row = 1:Base.:-(m, 1)
-            col = row
+            col = min(row, n)
             maxel, maxidx = findmax(A[row:end, col])
             if iszero(maxel)
                 for i in Base.:+(col, 1):n
@@ -68,7 +71,11 @@ function rankconsistency(A, b)
 
             if iszero(maxel)
                 # All elements are zeros (no pivot); echelon form obtained
-                return A, rank
+                # If prev row has an element only in b, the system is inconsistent
+                if A[rank, Base.:-(n, 1)] == 0 && A[rank, n] != 0
+                    return convert(Matrix{Int64}, A), convert(Int64, rank), false
+                end
+                return convert(Matrix{Int64}, A), convert(Int64, rank), true
             end
             
             # Pivot element found, increment rank
@@ -102,6 +109,6 @@ function rankconsistency(A, b)
         rank = Base.:+(rank, 1) 
     end
     
-    return A[:, 1:Base.:-(n, 1)], rank, rank >= rank_aug
+    return convert(Matrix{Int64}, A[:, 1:Base.:-(n, 1)]), convert(Int64, rank), rank >= rank_aug
 end
 

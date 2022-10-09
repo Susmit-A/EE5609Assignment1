@@ -17,16 +17,16 @@ for sample in Samples
     @time lafact(A, b)
 end
 
-include("assignment1.jl")
+include("EE5609TeamID20.jl")
 
 for sample in Samples
     A = sample.A
     b = sample.b
-    @time rankconsistency(A, b)
-    # u, r, c = rankconsistency(A, b)
-    # u = convert(Matrix{Int64}, u)
-    # r = convert(Int64, r)
-    # println(u == sample.U, ' ', r == sample.r, ' ', c == sample.consistent)
+    # @time rankconsistency(A, b)
+    u, r, c = rankconsistencyTeamID20(A, b)
+    u = convert(Matrix{Int64}, u)
+    r = convert(Int64, r)
+    println(u == sample.U, ' ', r == sample.r, ' ', c == sample.consistent)
 end
 
 
